@@ -24,6 +24,8 @@
             --light-bg: #f8f9fa;
             --border-radius: 10px;
             --box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --selected-square: rgba(52, 152, 219, 0.5);
+            --valid-move: rgba(46, 204, 113, 0.3);
         }
         
         body {
@@ -241,6 +243,21 @@
             height: min(500px, 90vw);
             border: 2px solid #333;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        /* Estilos para resaltar casillas seleccionadas */
+        .square-selected {
+            background-color: var(--selected-square) !important;
+        }
+        
+        .square-valid {
+            background-color: var(--valid-move) !important;
+            cursor: pointer;
+        }
+        
+        .square-valid:hover {
+            background-color: rgba(46, 204, 113, 0.5) !important;
         }
         
         .timer-container {
@@ -1688,6 +1705,10 @@ Qc3 Nd3</textarea>
         let currentSessionResults = [];
         let waitingForUndo = false;
         
+        // Variables para el modo táctil (selección)
+        let selectedSquare = null;
+        let validMoves = [];
+        
         // Estadísticas acumuladas
         let sessions = JSON.parse(localStorage.getItem('chessSessions')) || [];
         let cumulativeStats = { first: 0, second: 0, third: 0, failed: 0, total: 0 };
@@ -1794,10 +1815,284 @@ Qc3 Nd3</textarea>
                 position: 'start',
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
                 onDragStart: onDragStart,
-                onDrop: onDrop
+                onDrop: onDrop,
+                onMouseoutSquare: onMouseoutSquare,
+                onMouseoverSquare: onMouseoverSquare,
+                onSnapEnd: onSnapEnd
             });
             
+            // Añadir manejador de clics para selección táctil
+            setTimeout(() => {
+                addClickHandlers();
+            }, 500);
+            
             if (callback) setTimeout(callback, 500);
+        }
+
+        function addClickHandlers() {
+            const squares = document.querySelectorAll('.square-55d63');
+            squares.forEach(square => {
+                square.addEventListener('click', handleSquareClick);
+                square.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleSquareClick(e);
+                });
+            });
+        }
+
+        function handleSquareClick(event) {
+            event.preventDefault();
+            
+            if (problemCompleted || !firstMoveMade || attempts >= MAX_ATTEMPTS || waitingForUndo) {
+                clearSelection();
+                return;
+            }
+            
+            // Obtener la casilla clickeada
+            const square = event.currentTarget;
+            const squareId = square.getAttribute('data-square') || square.id;
+            
+            if (!squareId) return;
+            
+            // Si no hay casilla seleccionada y hay una pieza del usuario en esa casilla
+            if (!selectedSquare) {
+                const piece = game.get(squareId);
+                if (piece && piece.color === userColor) {
+                    // Seleccionar la casilla
+                    selectSquare(squareId);
+                }
+            } else {
+                // Ya hay una casilla seleccionada - intentar mover
+                if (selectedSquare === squareId) {
+                    // Click en la misma casilla - deseleccionar
+                    clearSelection();
+                } else {
+                    // Intentar mover de la casilla seleccionada a esta
+                    makeMove(selectedSquare, squareId);
+                }
+            }
+        }
+
+        function selectSquare(square) {
+            clearSelection();
+            selectedSquare = square;
+            
+            // Resaltar la casilla seleccionada
+            const squareElement = document.querySelector(`[data-square="${square}"], #${square}`);
+            if (squareElement) {
+                squareElement.classList.add('square-selected');
+            }
+            
+            // Calcular y resaltar movimientos válidos
+            validMoves = game.moves({ 
+                square: square, 
+                verbose: true 
+            });
+            
+            validMoves.forEach(move => {
+                const targetElement = document.querySelector(`[data-square="${move.to}"], #${move.to}`);
+                if (targetElement) {
+                    targetElement.classList.add('square-valid');
+                }
+            });
+        }
+
+        function clearSelection() {
+            if (selectedSquare) {
+                const oldSquare = document.querySelector(`[data-square="${selectedSquare}"], #${selectedSquare}`);
+                if (oldSquare) {
+                    oldSquare.classList.remove('square-selected');
+                }
+            }
+            
+            validMoves.forEach(move => {
+                const targetElement = document.querySelector(`[data-square="${move.to}"], #${move.to}`);
+                if (targetElement) {
+                    targetElement.classList.remove('square-valid');
+                }
+            });
+            
+            selectedSquare = null;
+            validMoves = [];
+        }
+
+        function makeMove(from, to) {
+            clearSelection();
+            
+            // Verificar si el movimiento es legal
+            const moves = game.moves({ 
+                verbose: true,
+                square: from
+            });
+            
+            const legalMove = moves.find(m => m.to === to);
+            
+            if (!legalMove) {
+                showBanner('❌ Movimiento no válido', true);
+                return;
+            }
+            
+            // Hacer el movimiento
+            let move = game.move({
+                from: from,
+                to: to,
+                promotion: 'q'
+            });
+            
+            if (!move) {
+                showBanner('❌ Error al mover', true);
+                return;
+            }
+            
+            // Actualizar tablero
+            board.position(game.fen());
+            
+            // Procesar el resultado
+            processMoveResult(move);
+        }
+
+        function onDragStart(source, piece, pos, orient) {
+            if (problemCompleted || !firstMoveMade || attempts >= MAX_ATTEMPTS || waitingForUndo) {
+                return false;
+            }
+            if (game.turn() !== userColor) {
+                return false;
+            }
+            // Limpiar selección al empezar a arrastrar
+            clearSelection();
+            return true;
+        }
+
+        function onDrop(source, target) {
+            if (problemCompleted || !firstMoveMade || attempts >= MAX_ATTEMPTS || waitingForUndo) {
+                return 'snapback';
+            }
+            if (game.turn() !== userColor) {
+                return 'snapback';
+            }
+            
+            // Hacer el movimiento
+            let move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            });
+            
+            if (!move) return 'snapback';
+            
+            // Mostrar el movimiento en el tablero
+            board.position(game.fen());
+            
+            // Procesar el resultado
+            processMoveResult(move);
+        }
+
+        function onMouseoverSquare(square, piece) {
+            // Opcional: resaltar movimientos al pasar el ratón
+        }
+
+        function onMouseoutSquare(square, piece) {
+            // Opcional: quitar resaltado al salir
+        }
+
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function processMoveResult(move) {
+            let data = problemData[currentIndex];
+            let userMove = normalizeMove(move.san);
+            let correctMove = data.second_normalized || '';
+            
+            if (userMove === correctMove) {
+                // ACIERTO - Guardar resultado
+                attempts++;
+                
+                currentSessionResults.push({
+                    problem: currentIndex + 1,
+                    attempts: attempts,
+                    success: true
+                });
+                
+                if (attempts === 1) cumulativeStats.first++;
+                else if (attempts === 2) cumulativeStats.second++;
+                else cumulativeStats.third++;
+                cumulativeStats.total++;
+                
+                problemCompleted = true;
+                stopTimer();
+                
+                showBanner('✅ ¡Correcto!');
+                clearSelection();
+                
+                setTimeout(() => {
+                    if (currentIndex + 1 < problemData.length) {
+                        loadProblem(currentIndex + 1);
+                    } else {
+                        showFinalStats();
+                    }
+                }, 1500);
+                
+            } else {
+                // MOVIMIENTO INCORRECTO
+                attempts++;
+                
+                if (attempts >= MAX_ATTEMPTS) {
+                    // FALLO - 3 intentos - Guardar resultado
+                    currentSessionResults.push({
+                        problem: currentIndex + 1,
+                        attempts: attempts,
+                        success: false
+                    });
+                    
+                    cumulativeStats.failed++;
+                    cumulativeStats.total++;
+                    
+                    problemCompleted = true;
+                    stopTimer();
+                    
+                    showBanner(`❌ Has fallado los 3 intentos. La jugada correcta era: ${data.second}`, true);
+                    
+                    // Mostrar jugada correcta
+                    waitingForUndo = true;
+                    clearSelection();
+                    
+                    while (game.history().length > 1) game.undo();
+                    try {
+                        game.move(data.second);
+                        board.position(game.fen());
+                    } catch(e) {}
+                    
+                    setTimeout(() => {
+                        waitingForUndo = false;
+                        if (currentIndex + 1 < problemData.length) {
+                            loadProblem(currentIndex + 1);
+                        } else {
+                            showFinalStats();
+                        }
+                    }, 2000);
+                    
+                } else {
+                    // AÚN QUEDAN INTENTOS - Revertir el movimiento
+                    showBanner(`❌ Movimiento incorrecto. Te quedan ${MAX_ATTEMPTS - attempts} intentos.`, true);
+                    
+                    // Revertir el movimiento
+                    waitingForUndo = true;
+                    clearSelection();
+                    game.undo();
+                    
+                    // Forzar actualización del tablero
+                    setTimeout(() => {
+                        board.position(game.fen());
+                        setTimeout(() => {
+                            board.position(game.fen());
+                            waitingForUndo = false;
+                        }, 50);
+                    }, 10);
+                }
+            }
+            
+            updateUI();
         }
 
         function normalizeMove(move) {
@@ -1847,6 +2142,7 @@ Qc3 Nd3</textarea>
 
         function loadProblem(index) {
             stopTimer();
+            clearSelection();
             
             if (index >= problemData.length) {
                 showFinalStats();
@@ -1874,6 +2170,11 @@ Qc3 Nd3</textarea>
             
             updateUI();
             
+            // Reasignar manejadores de clics después de cargar nueva posición
+            setTimeout(() => {
+                addClickHandlers();
+            }, 200);
+            
             setTimeout(() => {
                 if (data.first && !problemCompleted) {
                     try {
@@ -1888,136 +2189,12 @@ Qc3 Nd3</textarea>
             }, FIRST_MOVE_DELAY);
         }
 
-        function onDragStart(source, piece, pos, orient) {
-            if (problemCompleted || !firstMoveMade || attempts >= MAX_ATTEMPTS || waitingForUndo) {
-                return false;
-            }
-            if (game.turn() !== userColor) {
-                return false;
-            }
-            return true;
-        }
-
-        function onDrop(source, target) {
-            if (problemCompleted || !firstMoveMade || attempts >= MAX_ATTEMPTS || waitingForUndo) {
-                return 'snapback';
-            }
-            if (game.turn() !== userColor) {
-                return 'snapback';
-            }
-            
-            // Hacer el movimiento
-            let move = game.move({
-                from: source,
-                to: target,
-                promotion: 'q'
-            });
-            
-            if (!move) return 'snapback';
-            
-            // Mostrar el movimiento en el tablero
-            board.position(game.fen());
-            
-            let data = problemData[currentIndex];
-            let userMove = normalizeMove(move.san);
-            let correctMove = data.second_normalized || '';
-            
-            if (userMove === correctMove) {
-                // ACIERTO - Guardar resultado
-                attempts++; // Incrementar intentos primero
-                
-                currentSessionResults.push({
-                    problem: currentIndex + 1,
-                    attempts: attempts,
-                    success: true
-                });
-                
-                if (attempts === 1) cumulativeStats.first++;
-                else if (attempts === 2) cumulativeStats.second++;
-                else cumulativeStats.third++;
-                cumulativeStats.total++;
-                
-                problemCompleted = true;
-                stopTimer();
-                
-                showBanner('✅ ¡Correcto!');
-                
-                setTimeout(() => {
-                    if (currentIndex + 1 < problemData.length) {
-                        loadProblem(currentIndex + 1);
-                    } else {
-                        showFinalStats();
-                    }
-                }, 1500);
-                
-            } else {
-                // MOVIMIENTO INCORRECTO
-                attempts++;
-                
-                if (attempts >= MAX_ATTEMPTS) {
-                    // FALLO - 3 intentos - Guardar resultado
-                    currentSessionResults.push({
-                        problem: currentIndex + 1,
-                        attempts: attempts,
-                        success: false
-                    });
-                    
-                    cumulativeStats.failed++;
-                    cumulativeStats.total++;
-                    
-                    problemCompleted = true;
-                    stopTimer();
-                    
-                    showBanner(`❌ Has fallado los 3 intentos. La jugada correcta era: ${data.second}`, true);
-                    
-                    // Mostrar jugada correcta
-                    waitingForUndo = true;
-                    while (game.history().length > 1) game.undo();
-                    try {
-                        game.move(data.second);
-                        board.position(game.fen());
-                    } catch(e) {}
-                    
-                    setTimeout(() => {
-                        waitingForUndo = false;
-                        if (currentIndex + 1 < problemData.length) {
-                            loadProblem(currentIndex + 1);
-                        } else {
-                            showFinalStats();
-                        }
-                    }, 2000);
-                    
-                } else {
-                    // AÚN QUEDAN INTENTOS - Revertir el movimiento
-                    showBanner(`❌ Movimiento incorrecto. Te quedan ${MAX_ATTEMPTS - attempts} intentos.`, true);
-                    
-                    // Revertir el movimiento
-                    waitingForUndo = true;
-                    game.undo();
-                    
-                    // Forzar actualización del tablero
-                    setTimeout(() => {
-                        board.position(game.fen());
-                        setTimeout(() => {
-                            board.position(game.fen());
-                            waitingForUndo = false;
-                        }, 50);
-                    }, 10);
-                }
-            }
-            
-            updateUI();
-        }
-
         function updateUI() {
             document.getElementById('attemptsLeft').textContent = MAX_ATTEMPTS - attempts;
             document.getElementById('currentProblem').textContent = currentIndex + 1;
             document.getElementById('totalProblems').textContent = problemData.length;
         }
 
-        // =================================================================
-        // FUNCIÓN DEL TEMPORIZADOR
-        // =================================================================
         function startTimer() {
             stopTimer();
             timeLeft = parseInt(document.getElementById('timeInput').value);
@@ -2052,6 +2229,7 @@ Qc3 Nd3</textarea>
                             let correct = problemData[currentIndex].second;
                             
                             waitingForUndo = true;
+                            clearSelection();
                             while (game.history().length > 1) game.undo();
                             try {
                                 game.move(correct);
@@ -2088,6 +2266,7 @@ Qc3 Nd3</textarea>
 
         function showFinalStats() {
             stopTimer();
+            clearSelection();
             
             // Guardar sesión
             let session = {
