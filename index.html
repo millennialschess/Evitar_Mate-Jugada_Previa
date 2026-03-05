@@ -2,88 +2,108 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>EVITAR EL MATE CON JUGADA PREVIA</title>
     <style>
-        /* (Mantener todos los estilos igual) */
+        /* RESET Y VARIABLES */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
         
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --success-color: #2ecc71;
+            --success-dark: #27ae60;
+            --danger-color: #e74c3c;
+            --danger-dark: #c0392b;
+            --warning-color: #f39c12;
+            --dark-bg: #2c3e50;
+            --light-bg: #f8f9fa;
+            --border-radius: 10px;
+            --box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: #2c3e50;
+            background: var(--dark-bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
         }
         
         .container {
             max-width: 1200px;
             width: 100%;
             background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--box-shadow);
         }
         
+        /* TIPOGRAFÍA RESPONSIVE */
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
-            font-size: 2em;
+            margin-bottom: 15px;
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            line-height: 1.3;
+            word-break: break-word;
         }
         
-        /* Panel de Login */
+        /* PANEL DE LOGIN RESPONSIVE */
         .login-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
+            background: var(--light-bg);
+            padding: clamp(15px, 4vw, 25px);
+            border-radius: var(--border-radius);
             margin-bottom: 20px;
             border: 1px solid #ddd;
         }
         
         .login-title {
-            font-size: 1.3em;
-            color: #2c3e50;
-            margin-bottom: 20px;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            color: var(--dark-bg);
+            margin-bottom: 15px;
             font-weight: bold;
         }
         
         .login-row {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .login-row input {
-            flex: 1;
-            padding: 12px;
+            flex: 1 1 200px;
+            padding: 12px 10px;
             border: 2px solid #ddd;
             border-radius: 5px;
             font-size: 16px;
-            min-width: 200px;
+            min-width: 150px;
+            width: 100%;
         }
         
         .login-row button {
-            padding: 12px 30px;
+            padding: 12px 15px;
             border: none;
             border-radius: 5px;
-            background: #3498db;
+            background: var(--primary-color);
             color: white;
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             font-weight: 600;
+            flex: 1 1 auto;
+            min-width: 120px;
         }
         
         .login-row button:hover {
-            background: #2980b9;
+            background: var(--primary-dark);
         }
         
         .admin-login-btn {
@@ -94,72 +114,73 @@
             background: #d35400 !important;
         }
         
-        /* Selector de problema */
+        /* SELECTOR DE PROBLEMA RESPONSIVE */
         .problem-selector {
             background: #e8f4f8;
-            padding: 20px;
+            padding: clamp(15px, 3vw, 20px);
             border-radius: 8px;
             margin-top: 15px;
         }
         
         .problem-selector h3 {
-            color: #2c3e50;
+            color: var(--dark-bg);
             margin-bottom: 15px;
-            font-size: 1.2em;
+            font-size: clamp(1rem, 3.5vw, 1.2rem);
         }
         
         .selector-controls {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
         
         .selector-controls input {
-            padding: 12px;
-            border: 2px solid #3498db;
+            padding: 10px;
+            border: 2px solid var(--primary-color);
             border-radius: 5px;
-            width: 100px;
+            width: 80px;
             font-size: 16px;
             text-align: center;
         }
         
         .selector-controls span {
-            font-size: 16px;
-            color: #2c3e50;
+            font-size: clamp(14px, 3vw, 16px);
+            color: var(--dark-bg);
         }
         
         .selector-controls strong {
-            color: #3498db;
-            font-size: 1.2em;
+            color: var(--primary-color);
+            font-size: clamp(1rem, 3.5vw, 1.2rem);
         }
         
         .selector-controls button {
-            padding: 12px 30px;
-            background: #2ecc71;
+            padding: 12px 20px;
+            background: var(--success-color);
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             font-weight: 600;
+            flex: 1 1 auto;
         }
         
         .selector-controls button:hover {
-            background: #27ae60;
+            background: var(--success-dark);
         }
         
         .selector-info {
             margin-top: 10px;
-            color: #2c3e50;
-            font-size: 0.95em;
+            color: var(--dark-bg);
+            font-size: clamp(13px, 2.5vw, 15px);
         }
         
-        /* Panel de Admin */
+        /* PANEL ADMIN RESPONSIVE */
         .admin-section {
             background: #fff3cd;
             border: 1px solid #ffeeba;
-            padding: 20px;
+            padding: clamp(15px, 3vw, 20px);
             border-radius: 8px;
             margin-top: 20px;
             display: none;
@@ -168,34 +189,42 @@
         .admin-section h3 {
             color: #856404;
             margin-bottom: 15px;
+            font-size: clamp(1rem, 3.5vw, 1.2rem);
         }
         
         .admin-section textarea {
             width: 100%;
-            height: 200px;
+            height: clamp(150px, 40vh, 200px);
             margin: 10px 0;
             padding: 10px;
             font-family: monospace;
-            font-size: 12px;
+            font-size: clamp(11px, 2.5vw, 12px);
             border: 1px solid #ddd;
             border-radius: 5px;
         }
         
         .admin-section input {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin: 5px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 16px;
         }
         
         .admin-buttons {
             display: flex;
             gap: 10px;
             margin-top: 15px;
+            flex-wrap: wrap;
         }
         
-        /* Área de juego */
+        .admin-buttons button {
+            flex: 1 1 auto;
+            min-width: 120px;
+        }
+        
+        /* ÁREA DE JUEGO RESPONSIVE */
         .game-area {
             display: none;
         }
@@ -208,21 +237,27 @@
         }
         
         #chessboard {
-            width: 500px;
-            height: 500px;
+            width: min(500px, 90vw);
+            height: min(500px, 90vw);
             border: 2px solid #333;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .timer-container {
             width: 100%;
-            max-width: 500px;
+            max-width: min(500px, 90vw);
             text-align: center;
         }
         
+        .timer-label {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
         .timer {
-            font-size: 2.5em;
-            padding: 15px;
+            font-size: clamp(2rem, 10vw, 2.5rem);
+            padding: 10px 15px;
             background: #34495e;
             color: white;
             border-radius: 8px;
@@ -231,8 +266,8 @@
         }
         
         .progress-mini {
-            font-size: 1.2em;
-            color: #2c3e50;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            color: var(--dark-bg);
             margin: 10px 0;
             font-weight: bold;
         }
@@ -242,28 +277,31 @@
             gap: 10px;
             justify-content: center;
             margin-top: 10px;
+            width: 100%;
         }
         
         .button {
-            padding: 12px 30px;
+            padding: 12px 20px;
             border: none;
             border-radius: 5px;
-            background: #3498db;
+            background: var(--primary-color);
             color: white;
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(14px, 3.5vw, 16px);
             font-weight: 600;
+            flex: 1 1 auto;
+            min-width: 120px;
         }
         
         .button.end {
-            background: #e74c3c;
+            background: var(--danger-color);
         }
         
         .button.end:hover {
-            background: #c0392b;
+            background: var(--danger-dark);
         }
         
-        /* Modal de Estadísticas */
+        /* MODAL RESPONSIVE */
         .modal {
             display: none;
             position: fixed;
@@ -275,53 +313,57 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 10px;
         }
         
         .modal-content {
             background: white;
-            padding: 30px;
+            padding: clamp(20px, 5vw, 30px);
             border-radius: 10px;
             max-width: 700px;
-            width: 90%;
-            max-height: 85vh;
+            width: 100%;
+            max-height: 90vh;
             overflow-y: auto;
         }
         
         .modal h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
+            color: var(--dark-bg);
+            margin-bottom: 15px;
             text-align: center;
-            border-bottom: 3px solid #3498db;
+            border-bottom: 3px solid var(--primary-color);
             padding-bottom: 10px;
+            font-size: clamp(1.2rem, 5vw, 1.5rem);
         }
         
         .tip-box {
             background: #fff3cd;
             border: 1px solid #ffeeba;
             border-radius: 5px;
-            padding: 15px;
+            padding: 12px;
             margin: 15px 0;
             color: #856404;
+            font-size: clamp(14px, 3vw, 15px);
         }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
             margin: 15px 0;
         }
         
         .stats-table {
-            background: #f8f9fa;
+            background: var(--light-bg);
             border-radius: 8px;
             padding: 15px;
         }
         
         .stats-table h4 {
-            color: #2c3e50;
+            color: var(--dark-bg);
             margin-bottom: 10px;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 2px solid var(--primary-color);
             padding-bottom: 5px;
+            font-size: clamp(1rem, 3.5vw, 1.1rem);
         }
         
         .stats-row {
@@ -329,17 +371,23 @@
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid #ddd;
+            font-size: clamp(14px, 3vw, 15px);
         }
         
-        .percentage { color: #27ae60; font-weight: bold; }
-        .percentage.medium { color: #f39c12; }
-        .percentage.low { color: #e74c3c; }
+        .percentage { color: var(--success-color); font-weight: bold; }
+        .percentage.medium { color: var(--warning-color); }
+        .percentage.low { color: var(--danger-color); }
         
         .modal-buttons {
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin-top: 25px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .modal-buttons button {
+            min-width: 120px;
         }
         
         .message-banner {
@@ -347,21 +395,121 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: #f39c12;
+            background: var(--warning-color);
             color: white;
-            padding: 15px 30px;
+            padding: 12px 20px;
             border-radius: 50px;
-            font-size: 1.2em;
+            font-size: clamp(14px, 4vw, 16px);
             font-weight: bold;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             z-index: 2000;
             display: none;
             animation: slideDown 0.3s ease;
+            white-space: nowrap;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         @keyframes slideDown {
             from { top: -100px; }
             to { top: 20px; }
+        }
+        
+        /* MEJORAS TÁCTILES PARA MÓVIL */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .login-row {
+                flex-direction: column;
+            }
+            
+            .login-row input,
+            .login-row button {
+                width: 100%;
+            }
+            
+            .selector-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .selector-controls input {
+                width: 100%;
+            }
+            
+            .admin-buttons {
+                flex-direction: column;
+            }
+            
+            .user-controls {
+                flex-direction: column;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            /* Aumentar área táctil para botones en móvil */
+            .button,
+            .login-row button,
+            .selector-controls button {
+                min-height: 48px;
+                padding: 14px 20px;
+            }
+            
+            /* Mejorar scroll en móvil */
+            .stats-table {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+        }
+        
+        /* Ajustes para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.1rem;
+            }
+            
+            .login-title {
+                font-size: 1rem;
+            }
+            
+            .timer {
+                font-size: 2rem;
+            }
+            
+            .modal h2 {
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* Orientación landscape en móvil */
+        @media (max-width: 900px) and (orientation: landscape) {
+            .board-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            #chessboard {
+                width: min(400px, 50vh);
+                height: min(400px, 50vh);
+            }
+            
+            .timer-container {
+                max-width: 300px;
+            }
         }
     </style>
 </head>
@@ -407,22 +555,6 @@
             
             <!-- ================================================================= -->
             <!-- ÁREA PARA EDITAR PROBLEMAS                                        -->
-            <!-- ================================================================= -->
-            <!-- Instrucciones:                                                    -->
-            <!-- 1. Modifica el texto entre las etiquetas <textarea> y </textarea> -->
-            <!-- 2. Cada problema debe tener este formato:                         -->
-            <!--    [Event "?"]                                                    -->
-            <!--    [Site "?"]                                                     -->
-            <!--    [Date "2024.12.22"]                                            -->
-            <!--    [Round "?"]                                                    -->
-            <!--    [White "Nombre"]                                               -->
-            <!--    [Black "Nombre"]                                               -->
-            <!--    [Result "*"]                                                   -->
-            <!--    [SetUp "1"]                                                    -->
-            <!--    [FEN "fen_string_aqui"]                                        -->
-            <!--    primer_movimiento segundo_movimiento                           -->
-            <!-- 3. Deja una línea en blanco entre cada problema                   -->
-            <!-- 4. Puedes agregar hasta 1000 problemas                            -->
             <!-- ================================================================= -->
             <label>📁 Posiciones PGN (edita aquí los problemas):</label>
             <textarea id="pgnInput">[Event "?"]
@@ -1473,16 +1605,6 @@ Qc3 Nd3</textarea>
             <!-- ================================================================= -->
             <!-- CONFIGURACIÓN DEL TIEMPO                                         -->
             <!-- ================================================================= -->
-            <!-- Instrucciones:                                                    -->
-            <!-- 1. Para CAMBIAR el tiempo por problema:                          -->
-            <!--    - Modifica el valor en el campo de abajo (en segundos)        -->
-            <!--    - Valor recomendado: entre 30 y 300 segundos                  -->
-            <!--                                                                   -->
-            <!-- 2. Para DESACTIVAR el tiempo (tiempo INFINITO):                  -->
-            <!--    - Cambia el número a un valor muy alto, por ejemplo: 999999   -->
-            <!--    - O puedes modificar la función startTimer() más abajo        -->
-            <!--      (busca "FUNCIÓN PARA DESACTIVAR TIEMPO")                    -->
-            <!-- ================================================================= -->
             <label>⏱️ Tiempo por problema (segundos):</label>
             <input type="number" id="timeInput" value="600" min="10" max="600">
             
@@ -1896,14 +2018,6 @@ Qc3 Nd3</textarea>
         // =================================================================
         // FUNCIÓN DEL TEMPORIZADOR
         // =================================================================
-        // Instrucciones para DESACTIVAR el tiempo (tiempo infinito):
-        // Opción 1: En el panel de admin, poner un número muy grande en "Tiempo por problema"
-        //           Ejemplo: 999999 (equivalente a ~277 horas)
-        //
-        // Opción 2: Modificar esta función para que nunca llegue a cero:
-        //           Busca la línea "if (timeLeft <= 0) {" y cámbiala por:
-        //           if (timeLeft <= 0 && false) {  // Esto nunca se ejecutará
-        // =================================================================
         function startTimer() {
             stopTimer();
             timeLeft = parseInt(document.getElementById('timeInput').value);
@@ -1914,8 +2028,6 @@ Qc3 Nd3</textarea>
                     timeLeft--;
                     updateTimerDisplay();
                     
-                    // Para tiempo infinito, comenta las siguientes líneas
-                    // o cambia la condición a algo como: if (timeLeft <= 0 && timeLeft < -999999) {
                     if (timeLeft <= 0) {
                         stopTimer();
                         
